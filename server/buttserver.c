@@ -2,18 +2,18 @@
 
 void echo(int connfd);
 
-int main(int argc, char **argv) 
-{
-  int listenfd, connfd, port;
+int main(int argc, char **argv) {
+  int listenfd, connfd, port, secret_key;
   socklen_t clientlen;
   struct sockaddr_in clientaddr;
   struct hostent *hp;
   char *haddrp;
-  if (argc != 2) {
-    fprintf(stderr, "usage: %s <port>\n", argv[0]);
+  if (argc != 3) {
+    fprintf(stderr, "usage: %s <port> <secret_key>\n", argv[0]);
     exit(0);
   }
   port = atoi(argv[1]);
+  secret_key = atoi(argv[2]);
 
   listenfd = Open_listenfd(port);
   while (1) {
@@ -26,7 +26,7 @@ int main(int argc, char **argv)
     haddrp = inet_ntoa(clientaddr.sin_addr);
     printf("server connected to %s (%s)\n", hp->h_name, haddrp);
 
-    serve(connfd);
+    serve(connfd, secret_key);
     Close(connfd);
   }
   exit(0);

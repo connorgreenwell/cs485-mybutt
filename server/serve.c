@@ -1,7 +1,6 @@
 #include "csapp.h"
 
-void serve(int connfd) 
-{
+void serve(int connfd, int secret) {
   size_t n; 
   char buf[MAXLINE]; 
   rio_t rio;
