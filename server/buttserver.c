@@ -1,33 +1,58 @@
-#include "csapp.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <arpa/inet.h>  /* for sockaddr_in and inet_ntoa() */
 
 void echo(int connfd);
+
+#define MAXPENDING 5
 
 int main(int argc, char **argv) {
   int listenfd, connfd, port, secret_key;
   socklen_t clientlen;
   struct sockaddr_in clientaddr;
-  struct hostent *hp;
-  char *haddrp;
+  struct sockaddr_in servaddr;
+
   if (argc != 3) {
     fprintf(stderr, "usage: %s <port> <secret_key>\n", argv[0]);
     exit(0);
   }
+
   port = atoi(argv[1]);
   secret_key = atoi(argv[2]);
 
-  listenfd = Open_listenfd(port);
+  if((listenfd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
+    fprintf(stderr, "Could not obtain socket\n");
+    exit(-1);
+  }
+
+  memset(&servaddr, 0, sizeof(servaddr));
+  servaddr.sin_family = AF_INET;
+  servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+  servaddr.sin_port = htons(port);
+
+  if(bind(listenfd, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0) {
+    fprintf(stderr, "Could not bind to port\n");
+    exit(-2);
+  }
+
+  if(listen(listenfd, MAXPENDING) < 0) {
+    fprintf(stderr, "listen(...) call failed\n");
+    exit(-4);
+  }
+
   while (1) {
     clientlen = sizeof(clientaddr);
-    connfd = Accept(listenfd, (SA *)&clientaddr, &clientlen);
-
-    /* Determine the domain name and IP address of the client */
-    hp = Gethostbyaddr((const char *)&clientaddr.sin_addr.s_addr, 
-        sizeof(clientaddr.sin_addr.s_addr), AF_INET);
-    haddrp = inet_ntoa(clientaddr.sin_addr);
-    printf("server connected to %s (%s)\n", hp->h_name, haddrp);
+    if((connfd = accept(listenfd, (struct sockaddr *)&clientaddr, &clientlen)) < 0) {
+      fprintf(stderr, "accept(...) call failed\n");
+      exit(-3);
+    }
 
     serve(connfd, secret_key);
-    Close(connfd);
+    close(connfd);
   }
   exit(0);
 }
