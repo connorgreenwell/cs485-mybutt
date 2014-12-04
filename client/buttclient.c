@@ -1,39 +1,51 @@
-#include "csapp.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <arpa/inet.h>  /* for sockaddr_in and inet_ntoa() */
 
-#pragma pack(1)
-typedef struct {
-  int secret;
-  int type;
-  char filename[80];
-  int size;
-  char file[];
-} request;
-#pragma pack(0)
+#include "requests.h"
 
-int main(int argc, char **argv) 
+int main(int argc, char **argv)
 {
   int clientfd, port;
-  char *host, buf[MAXLINE];
-  rio_t rio;
+  char *host;
+  int sock;
 
-  request req;
-  req.type = 0;
-  req.size = 0;
-  
+  store_request req;
+  req.base.type = REQ_STORE;
+  req.filesize = 0;
+
   if (argc != 5) {
     fprintf(stderr, "usage: %s <host> <port> <secret> <file>\n", argv[0]);
     exit(0);
   }
+
   host = argv[1];
   port = atoi(argv[2]);
-  req.secret = atoi(argv[3]);
-  strcpy(req.filename, argv[4]);
+  req.base.secret = atoi(argv[3]);
+  strncpy(req.filename, argv[4], FNAME_MAX);
 
-  clientfd = Open_clientfd(host, port);
-  Rio_readinitb(&rio, clientfd);
+  if((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    printf("Failed to get socket\n");
+    exit(-2);
+  }
 
-  Rio_writen(clientfd, &req, sizeof(request));
-  
-  Close(clientfd); //line:netp:echoclient:close
+  struct sockaddr_in servAddr;
+  memset(&servAddr, 0, sizeof(servAddr));
+  servAddr.sin_family = AF_INET;
+  servAddr.sin_addr.s_addr = inet_addr(host);
+  servAddr.sin_port = htons(port);
+
+  if(connect(sock, (struct sockaddr*) &servAddr, sizeof(servAddr)) < 0) {
+    printf("Failed to connect to server\n");
+    exit(-3);
+  }
+
+  send(sock, &req, store_request_size(&req), 0);
+
+  close(sock);
+
   exit(0);
 }

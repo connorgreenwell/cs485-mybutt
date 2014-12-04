@@ -1,25 +1,28 @@
-#include "csapp.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 
-#pragma pack(1)
-struct request {
-  int secret;
-  int type;
-  char filename[80];
-  int size;
-  //char* file;
-};
-#pragma pack(0)
+#include "requests.h"
 
 void serve(int connfd, int secret) {
-  size_t n; 
-  char buf[MAXLINE]; 
-  rio_t rio;
+  size_t n;
 
-  struct request req;
+  base_request base_req;
+  store_request store_req;
 
-  Rio_readinitb(&rio, connfd);
-  while((n = Rio_readnb(&rio, &req, sizeof(struct request))) != 0) { //line:netp:echo:eof
-    printf("server received %d bytes\n", (int)n);
-    printf("sec: %d type: %d filename: %s\n", req.secret, req.type, req.filename);
+  while(recv(connfd, &base_req, sizeof(base_request), MSG_PEEK) != 0) {
+    switch(base_req.type) {
+      case REQ_STORE:
+        n = recv(connfd, &store_req, sizeof(store_request), 0);
+        printf("server received %d bytes\n", (int)n);
+        printf("sec: %d type: %d filename: %s\n", store_req.base.secret, store_req.base.type, store_req.filename);
+        break;
+    }
   }
+
+  /* while((n = recv(&connfd, &req, sizeof(base_request), 0)) != 0) { //line:netp:echo:eof */
+  /*   printf("server received %d bytes\n", (int)n); */
+  /*   printf("sec: %d type: %d filename: %s\n", req.secret, req.type, req.filename); */
+  /* } */
 }
