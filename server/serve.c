@@ -6,10 +6,10 @@
 
 #include "requests.h"
 
-void log_req(store_request* req, bool success) {
-  printf("Secret Key = %d\n", req->base.secret);
-  printf("Request Type = %s\n", req_name_from_type(req->base.type));
-  if(req->base.type == REQ_LIST) {
+void log_req(request* req, bool success) {
+  printf("Secret Key = %d\n", req->secret);
+  printf("Request Type = %s\n", req_name_from_type(req->type));
+  if(req->type == REQ_LIST) {
     printf("Filename = NONE\n");
   } else {
     printf("Filename = %s\n", req->filename);
@@ -27,11 +27,10 @@ void serve(int connfd, int secret) {
   size_t n;
   bool success;
 
-  base_request base_req;
-  store_request store_req;
+  request req;
 
-  while((n = recv(connfd, &store_req, sizeof(store_request), 0)) != 0) {
-    switch(base_req.type) {
+  if((n = recv(connfd, &req, sizeof(request), 0)) != 0) {
+    switch(req.type) {
     case REQ_STORE:
       break;
     case REQ_DELETE:
@@ -41,7 +40,7 @@ void serve(int connfd, int secret) {
     case REQ_GET:
       break;
     }
-    log_req(&store_req, success);
+    log_req(&req, success);
     success = false;
   }
 }

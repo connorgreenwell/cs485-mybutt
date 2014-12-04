@@ -7,25 +7,57 @@
 
 #include "requests.h"
 
+void print_usage(char* name) {
+    fprintf(stderr, "usage: %s <req_type> <host> <port> <secret> [<file>]\n", name);
+    exit(0);
+}
+
+int send_request(request* req, char* host, int port) {
+  int sock;
+  int clientfd;
+
+  if((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    fprintf(stderr,"Failed to get socket\n");
+    return -2;
+  }
+
+  struct sockaddr_in servAddr;
+  memset(&servAddr, 0, sizeof(servAddr));
+  servAddr.sin_family = AF_INET;
+  servAddr.sin_addr.s_addr = inet_addr(host);
+  servAddr.sin_port = htons(port);
+
+  if(connect(sock, (struct sockaddr*) &servAddr, sizeof(servAddr)) < 0) {
+    fprintf(stderr,"Failed to connect to server\n");
+    return -3;
+  }
+
+  send(sock, req, store_request_size(req), 0);
+
+  close(sock);
+
+  return 1;
+}
+
 int main(int argc, char **argv) {
   int port;
   char *host;
   FILE* fd;
 
+  if (argc < 5) print_usage(argv[0]);
+  
   request req;
   req.size = 0;
-
-  if (argc != 6) {
-    fprintf(stderr, "usage: %s <req_type> <host> <port> <secret> [<file>]\n", argv[0]);
-    exit(0);
-  }
-
   req.type = req_type_from_name(argv[1]);
+
   host = argv[2];
   port = atoi(argv[3]);
   req.secret = atoi(argv[4]);
   
-  if (req.type != REQ_LIST) {
+  if (req.type == REQ_LIST) {
+    if (argc != 5) print_usage(argv[0]);
+  } else {
+    if (argc != 6) print_usage(argv[0]);
     strncpy(req.filename, argv[5], FNAME_MAX);
   }
 
@@ -43,33 +75,5 @@ int main(int argc, char **argv) {
       break;
   }
 
-  send_request(&req, host, port);
-  exit(0);
-}
-
-int send_request(request* req, char* host, int port) {
-  int sock;
-  int clientfd;
-
-  if((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-    fprintf(stderr,"Failed to get socket\n");
-    exit(-2);
-  }
-
-  struct sockaddr_in servAddr;
-  memset(&servAddr, 0, sizeof(servAddr));
-  servAddr.sin_family = AF_INET;
-  servAddr.sin_addr.s_addr = inet_addr(host);
-  servAddr.sin_port = htons(port);
-
-  if(connect(sock, (struct sockaddr*) &servAddr, sizeof(servAddr)) < 0) {
-    fprintf(stderr,"Failed to connect to server\n");
-    exit(-3);
-  }
-
-  send(sock, req, store_request_size(req), 0);
-
-  close(sock);
-
-  exit(0);
+  exit(send_request(&req, host, port));
 }
