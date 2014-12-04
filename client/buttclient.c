@@ -7,30 +7,49 @@
 
 #include "requests.h"
 
-int main(int argc, char **argv)
-{
-  int clientfd, port;
+int main(int argc, char **argv) {
+  int port;
   char *host;
-  int sock;
   FILE* fd;
 
-  store_request req;
-  req.base.type = REQ_STORE;
+  request req;
   req.size = 0;
 
-  if (argc != 5) {
-    fprintf(stderr, "usage: %s <host> <port> <secret> <file>\n", argv[0]);
+  if (argc != 6) {
+    fprintf(stderr, "usage: %s <req_type> <host> <port> <secret> [<file>]\n", argv[0]);
     exit(0);
   }
 
-  host = argv[1];
-  port = atoi(argv[2]);
-  req.base.secret = atoi(argv[3]);
-  strncpy(req.filename, argv[4], FNAME_MAX);
+  req.type = req_type_from_name(argv[1]);
+  host = argv[2];
+  port = atoi(argv[3]);
+  req.secret = atoi(argv[4]);
+  
+  if (req.type != REQ_LIST) {
+    strncpy(req.filename, argv[5], FNAME_MAX);
+  }
 
-  fd = fopen(req.filename, "r");
-  req.size = fread(req.contents, sizeof(char), CONTENT_MAX, fd);
-  close(fd);
+  switch (req.type) {
+    case REQ_STORE:
+      fd = fopen(req.filename, "r");
+      req.size = fread(req.contents, sizeof(char), CONTENT_MAX, fd);
+      close(fd);
+      break;
+    case REQ_GET: 
+      break;
+    case REQ_DELETE: 
+      break;
+    case REQ_LIST: 
+      break;
+  }
+
+  send_request(&req, host, port);
+  exit(0);
+}
+
+int send_request(request* req, char* host, int port) {
+  int sock;
+  int clientfd;
 
   if((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
     fprintf(stderr,"Failed to get socket\n");
@@ -48,7 +67,7 @@ int main(int argc, char **argv)
     exit(-3);
   }
 
-  send(sock, &req, store_request_size(&req), 0);
+  send(sock, req, store_request_size(req), 0);
 
   close(sock);
 

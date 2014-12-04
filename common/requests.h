@@ -11,23 +11,17 @@
 #define REQ_LIST 3
 
 #pragma pack(1)
-typedef struct base_request_struct {
+typedef struct request_struct {
   int secret;
   int type;
-} base_request;
-#pragma pack(0)
-
-#pragma pack(1)
-typedef struct store_request_struct {
-  base_request base;
   char filename[FNAME_MAX];
   uint32_t size;
   char contents[CONTENT_MAX];
-} store_request;
+} request;
 #pragma pack(0)
 
-size_t store_request_size(store_request* req) {
-  return sizeof(base_request)
+size_t store_request_size(request* req) {
+  return sizeof(request)
     + FNAME_MAX * sizeof(char)
     + sizeof(uint32_t)
     + sizeof(char) * req->size;
