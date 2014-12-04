@@ -5,6 +5,7 @@
 #include <sys/types.h>
 
 #include "requests.h"
+#include "storage.h"
 
 void log_req(request* req, bool success) {
   printf("Secret Key = %d\n", req->secret);
@@ -23,6 +24,11 @@ void log_req(request* req, bool success) {
   printf("--------------------------\n");
 }
 
+
+void file_into_response(file* f, response* res) {
+
+}
+
 void serve(int connfd, int secret) {
   size_t n;
   bool success;
@@ -32,12 +38,15 @@ void serve(int connfd, int secret) {
   if((n = recv(connfd, &req, sizeof(request), 0)) != 0) {
     switch(req.type) {
     case REQ_STORE:
+      success = store_file(req.filename, req.contents, req.size);
       break;
     case REQ_DELETE:
+      success = delete_file(req.filename);
       break;
     case REQ_LIST:
       break;
     case REQ_GET:
+      success = get_file(req.filename, NULL);
       break;
     }
     log_req(&req, success);

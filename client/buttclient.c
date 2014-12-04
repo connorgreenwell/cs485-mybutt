@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <arpa/inet.h>  /* for sockaddr_in and inet_ntoa() */
@@ -45,7 +46,7 @@ int main(int argc, char **argv) {
   FILE* fd;
 
   if (argc < 5) print_usage(argv[0]);
-  
+
   request req;
   req.size = 0;
   req.type = req_type_from_name(argv[1]);
@@ -53,7 +54,7 @@ int main(int argc, char **argv) {
   host = argv[2];
   port = atoi(argv[3]);
   req.secret = atoi(argv[4]);
-  
+
   if (req.type == REQ_LIST) {
     if (argc != 5) print_usage(argv[0]);
   } else {
@@ -65,13 +66,13 @@ int main(int argc, char **argv) {
     case REQ_STORE:
       fd = fopen(req.filename, "r");
       req.size = fread(req.contents, sizeof(char), CONTENT_MAX, fd);
-      close(fd);
+      fclose(fd);
       break;
-    case REQ_GET: 
+    case REQ_GET:
       break;
-    case REQ_DELETE: 
+    case REQ_DELETE:
       break;
-    case REQ_LIST: 
+    case REQ_LIST:
       break;
   }
 

@@ -6,9 +6,11 @@
 #include <unistd.h>
 #include <arpa/inet.h>  /* for sockaddr_in and inet_ntoa() */
 
-void echo(int connfd);
+#include "storage.h"
 
 #define MAXPENDING 5
+
+void serve(int, int);
 
 int main(int argc, char **argv) {
   int listenfd, connfd, port, secret_key;
@@ -43,6 +45,8 @@ int main(int argc, char **argv) {
     fprintf(stderr, "listen(...) call failed\n");
     exit(-4);
   }
+
+  init_storage();
 
   while (1) {
     clientlen = sizeof(clientaddr);
