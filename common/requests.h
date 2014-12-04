@@ -16,7 +16,7 @@ typedef struct base_request_struct {
 typedef struct store_request_struct {
   base_request base;
   char filename[FNAME_MAX];
-  uint32_t filesize;
+  uint32_t size;
   char contents[CONTENT_MAX];
 } store_request;
 #pragma pack(0)
@@ -25,5 +25,5 @@ size_t store_request_size(store_request* req) {
   return sizeof(base_request)
     + FNAME_MAX * sizeof(char)
     + sizeof(uint32_t)
-    + sizeof(char) * req->filesize;
+    + sizeof(char) * req->size;
 }

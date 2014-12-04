@@ -12,10 +12,11 @@ int main(int argc, char **argv)
   int clientfd, port;
   char *host;
   int sock;
+  FILE* fd;
 
   store_request req;
   req.base.type = REQ_STORE;
-  req.filesize = 0;
+  req.size = 0;
 
   if (argc != 5) {
     fprintf(stderr, "usage: %s <host> <port> <secret> <file>\n", argv[0]);
@@ -27,8 +28,12 @@ int main(int argc, char **argv)
   req.base.secret = atoi(argv[3]);
   strncpy(req.filename, argv[4], FNAME_MAX);
 
+  fd = fopen(req.filename, "r");
+  req.size = fread(req.contents, sizeof(char), CONTENT_MAX, fd);
+  close(fd);
+
   if((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-    printf("Failed to get socket\n");
+    fprintf(stderr,"Failed to get socket\n");
     exit(-2);
   }
 
@@ -39,7 +44,7 @@ int main(int argc, char **argv)
   servAddr.sin_port = htons(port);
 
   if(connect(sock, (struct sockaddr*) &servAddr, sizeof(servAddr)) < 0) {
-    printf("Failed to connect to server\n");
+    fprintf(stderr,"Failed to connect to server\n");
     exit(-3);
   }
 
