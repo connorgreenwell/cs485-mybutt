@@ -1,6 +1,8 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include <stdio.h>
+
 #include "requests.h"
 #include "storage.h"
 
@@ -54,13 +56,27 @@ bool delete_file(char* name) {
   }
 }
 
-bool get_file(char* name, file* f) {
+bool get_file(char* name, response* resp) {
   int index = find_index(name);
   if(index == -1) {
-    f = NULL;
     return false;
   } else {
-    *f = files[index];
+    resp->size = files[index].size;
+    memcpy(resp->contents, files[index].contents, files[index].size);
     return true;
   }
+}
+
+int list_files(response* resp) {
+  int count = 0;
+  int offset = 0;
+  for (int i = 0; i < NUM_FILES; i++) {
+    if(files[i].used) { 
+      count++;
+      sprintf(resp->contents + offset, "%s\n", files[i].name);
+      offset += strlen(files[i].name) + 1;
+    }
+  }
+  resp->size = offset;
+  return count;
 }

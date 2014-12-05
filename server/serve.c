@@ -34,7 +34,11 @@ void serve(int connfd, int secret) {
   bool success;
 
   request req;
+  response resp;
 
+  resp.status = RESP_OK;
+  resp.size = 0;
+  
   if((n = recv(connfd, &req, sizeof(request), 0)) != 0) {
     switch(req.type) {
     case REQ_STORE:
@@ -44,12 +48,22 @@ void serve(int connfd, int secret) {
       success = delete_file(req.filename);
       break;
     case REQ_LIST:
+      success = true;
+      list_files(&resp);
       break;
     case REQ_GET:
-      success = get_file(req.filename, NULL);
+      success = get_file(req.filename, &resp);
       break;
     }
+    
+    if (!success) {
+      resp.status = RESP_ERROR;
+    }
+    
     log_req(&req, success);
+    
+    send(connfd, &resp, response_size(&resp), 0);
+    
     success = false;
   }
 }

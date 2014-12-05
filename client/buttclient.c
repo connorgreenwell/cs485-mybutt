@@ -13,7 +13,17 @@ void print_usage(char* name) {
     exit(0);
 }
 
-int send_request(request* req, char* host, int port) {
+void handle_response(response* resp) {
+  if (resp->status == RESP_ERROR) {
+    printf("ERROR\n");
+  }
+
+  if (resp->size > 0) {
+    printf("%s", resp->contents);
+  }
+}
+
+int send_request(request* req, char* host, int port, response* resp) {
   int sock;
   int clientfd;
 
@@ -33,7 +43,14 @@ int send_request(request* req, char* host, int port) {
     return -3;
   }
 
-  send(sock, req, store_request_size(req), 0);
+  send(sock, req, request_size(req), 0);
+  
+  if (read(sock, resp, CONTENT_MAX) < 0) {
+    close(sock);
+    return -4;
+  }
+
+  handle_response(resp);
 
   close(sock);
 
@@ -75,6 +92,12 @@ int main(int argc, char **argv) {
     case REQ_LIST:
       break;
   }
+  
+  response resp;
 
-  exit(send_request(&req, host, port));
+  if (send_request(&req, host, port, &resp) < 0) {
+    exit(-5);
+  }
+ 
+  exit(1);
 }

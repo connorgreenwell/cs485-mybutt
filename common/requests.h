@@ -23,12 +23,19 @@ typedef struct request_struct {
 } request;
 #pragma pack(0)
 
+#define RESP_OK 0
+#define RESP_ERROR 1
+
 #pragma pack(1)
 typedef struct response_struct {
+  uint32_t status;
+  uint32_t size;
+  char contents[CONTENT_MAX];
 } response;
 #pragma pack(0)
 
-size_t store_request_size(request* req);
+size_t request_size(request* req);
+size_t response_size(response* req);
 int req_type_from_name(char* name);
 char* req_name_from_type(int type);
 

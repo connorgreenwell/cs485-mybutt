@@ -18,8 +18,9 @@ typedef struct file_struct {
 void init_storage();
 int find_index(char*);
 int find_unused_index();
-bool get_file(char*, file*);
+bool get_file(char*, response*);
 bool store_file(char*, char*, size_t);
 bool delete_file(char*);
+int list_files(response*);
 
 #endif

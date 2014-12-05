@@ -4,11 +4,18 @@
 
 #include "requests.h"
 
-size_t store_request_size(request* req) {
+size_t request_size(request* req) {
   return sizeof(request)
     + FNAME_MAX * sizeof(char)
     + sizeof(uint32_t)
     + sizeof(char) * req->size;
+}
+
+size_t response_size(response* resp) {
+  return sizeof(response)
+    + FNAME_MAX * sizeof(char)
+    + sizeof(uint32_t)
+    + sizeof(char) * resp->size;
 }
 
 int req_type_from_name(char* name) {
