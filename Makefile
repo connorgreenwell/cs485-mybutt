@@ -1,6 +1,7 @@
 CC=gcc -std=c99
 
 all: buttserver buttclient
+	chmod u+x mc*
 
 buttserver: common/requests.o server/buttserver.o server/serve.o server/storage.o
 	${CC} $^ -lpthread -Icommon -o $@
