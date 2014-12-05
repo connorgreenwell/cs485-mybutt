@@ -25,7 +25,6 @@ void handle_response(response* resp) {
 
 int send_request(request* req, char* host, int port, response* resp) {
   int sock;
-  int clientfd;
 
   if((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
     fprintf(stderr,"Failed to get socket\n");

@@ -1,4 +1,4 @@
-CC=gcc -std=c99
+CC=gcc -Wall -std=c99
 
 all: buttserver buttclient
 	chmod u+x mc*
@@ -14,3 +14,4 @@ buttclient: common/requests.o client/buttclient.o
 
 clean:
 	rm -f */*.o buttserver buttclient
+	chmod u-x mc*
