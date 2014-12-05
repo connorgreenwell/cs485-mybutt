@@ -60,7 +60,6 @@ int send_request(request* req, char* host, int port, response* resp) {
 int main(int argc, char **argv) {
   int port;
   char *host;
-  FILE* fd;
 
   if (argc < 5) print_usage(argv[0]);
 
@@ -81,9 +80,7 @@ int main(int argc, char **argv) {
 
   switch (req.type) {
     case REQ_STORE:
-      fd = fopen(req.filename, "r");
-      req.size = fread(req.contents, sizeof(char), CONTENT_MAX, fd);
-      fclose(fd);
+      req.size = fread(req.contents, sizeof(char), CONTENT_MAX, stdin);
       break;
     case REQ_GET:
       break;
